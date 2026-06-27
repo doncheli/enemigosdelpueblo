@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createSupabaseServer } from '@/lib/supabase/server'
-import { cerrarSesion } from './actions'
+import { cerrarSesion } from '../actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,9 +12,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     data: { user },
   } = await supabase.auth.getUser()
 
-  // El login renderiza su propio árbol; si no hay user, el middleware ya redirige.
+  // Sin sesión: al login. (El login NO usa este layout, así que no hay bucle.)
   if (!user) {
-    return <>{children}</>
+    redirect('/doncheli_admin/login')
   }
 
   // Autorización fina: ¿es moderador? (consulta protegida por RLS / SECURITY DEFINER)

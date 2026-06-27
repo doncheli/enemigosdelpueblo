@@ -52,5 +52,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/doncheli_admin/:path*'],
+  matcher: ['/doncheli_admin', '/doncheli_admin/:path*'],
 }

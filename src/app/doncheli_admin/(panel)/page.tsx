@@ -5,7 +5,7 @@ import {
   rechazarDenuncia,
   aprobarReplica,
   rechazarReplica,
-} from './actions'
+} from '../actions'
 
 export const dynamic = 'force-dynamic'
 
