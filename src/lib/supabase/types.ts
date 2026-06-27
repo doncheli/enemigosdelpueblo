@@ -187,6 +187,24 @@ export type Database = {
           },
         ]
       }
+      moderadores: {
+        Row: {
+          created_at: string
+          email: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       replicas: {
         Row: {
           acusado_id: string
@@ -257,6 +275,7 @@ export type Database = {
         }
         Returns: string
       }
+      es_moderador: { Args: never; Returns: boolean }
       obtener_seguimiento: {
         Args: { p_codigo: string }
         Returns: {
