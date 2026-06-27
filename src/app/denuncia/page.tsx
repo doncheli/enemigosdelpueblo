@@ -43,17 +43,7 @@ const DELITO_STYLE: Record<
 const MOCK_CEDULAS: Record<
   string,
   { nombres: string; apellidos: string; cargo: string; institucion: string; estado: string; municipio: string; denunciasCount: number }
-> = {
-  '14523891': {
-    nombres: 'Carlos Eduardo',
-    apellidos: 'Martínez Pérez',
-    cargo: 'Comisario de Policía',
-    institucion: 'CPBEZ',
-    estado: 'Zulia',
-    municipio: 'Maracaibo',
-    denunciasCount: 3,
-  },
-}
+> = {}
 
 interface FilePreview {
   file: File

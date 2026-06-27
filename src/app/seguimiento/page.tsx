@@ -10,51 +10,7 @@ import Footer from '@/components/Footer'
 import CrimeBadge from '@/components/ui/CrimeBadge'
 import { TrackingResult, TrackingStepStatus } from '@/types'
 
-const MOCK_RESULTS: Record<string, TrackingResult> = {
-  'ENP-2024-A7F3': {
-    id: 'ENP-2024-A7F3',
-    acusado: {
-      nombres: 'Carlos Eduardo',
-      apellidos: 'Martínez Pérez',
-      cargo: 'Comisario',
-      institucion: 'CPBEZ',
-      estado: 'Zulia',
-      fotoUrl:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBaDkSe3mcJhM1F6M1swoLj7-6rsRAQTN0NCxU001sOnRhODkqI7ol_POVk_qezKfsAi6KudpWFN0iySVFDF9PexMDYDg6BKSyutbLr7LrSIOtmbTnzU7a6CLr_-sRGHVNPxTAYDJcWjiY4w_wmRDaDVlPQefIV54J3Ht19PSX0oCgAx1mVFvw1JvG2H9rXiDunTD6Qbuuls9utRqiLHJRpI3nfnkj2jhXw8juEIbRQK95rBtOunnXE9twFtQ7hW_6lbyA0RiVu28GP',
-    },
-    tipo: 'CORRUPCIÓN',
-    estado: 'EN_REVISION',
-    aiScore: 0.61,
-    timeline: [
-      {
-        status: 'COMPLETADO',
-        titulo: 'Denuncia recibida',
-        descripcion: 'Tu denuncia fue registrada correctamente en el sistema.',
-        fecha: '15 mar 2024',
-        hora: '14:32',
-      },
-      {
-        status: 'COMPLETADO',
-        titulo: 'Validación IA en progreso',
-        descripcion: 'Gemini analizó la descripción y evidencias.',
-        fecha: '15 mar 2024',
-        hora: '14:35',
-      },
-      {
-        status: 'EN_PROGRESO',
-        titulo: 'En revisión editorial',
-        descripcion: 'Score intermedio (0.61). Un moderador revisará manualmente para asegurar veracidad.',
-        fecha: '15 mar 2024',
-        hora: '15:10',
-      },
-      {
-        status: 'PENDIENTE',
-        titulo: 'Decisión final',
-        descripcion: 'La denuncia será publicada o rechazada tras la validación humana.',
-      },
-    ],
-  },
-}
+const MOCK_RESULTS: Record<string, TrackingResult> = {}
 
 const STATUS_LABELS: Record<string, { label: string; bg: string; text: string }> = {
   PENDIENTE: { label: 'PENDIENTE', bg: 'bg-elevated', text: 'text-textSecondary' },

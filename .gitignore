@@ -27,3 +27,4 @@ next-env.d.ts
 
 # don cheli (estado local del framework, no es código de la app)
 /.dc
+.vercel

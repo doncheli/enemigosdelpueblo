@@ -10,88 +10,7 @@ import { Acusado, TipoDelito } from '@/types'
 
 const CATEGORIAS: TipoDelito[] = ['CORRUPCIÓN', 'EXTORSIÓN', 'ABUSO DE AUTORIDAD']
 
-const MOCK_ACUSADOS: Acusado[] = [
-  {
-    cedula: '14523891',
-    cedulaPrefix: 'V',
-    nombres: 'Carlos Eduardo',
-    apellidos: 'Martínez Pérez',
-    cargo: 'Comisario de Policía',
-    institucion: 'CPBEZ',
-    estado: 'Zulia',
-    municipio: 'Maracaibo',
-    fotoUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuC7cSOtQtO_Av_bXFZzqRCwZV-Qfn94jIjrtZj_MnTtn2Qzvg-DpDX-U_yI6axb1gh9vsL2ZRhO-XZ81BY8s21ELgtgousYTvnwUGqVPTJxGPYsUvmSdbTHv0_RvRZnFEpBHuxQfGj8FTRAoGfVSdNdQohxF3HK9BrHPaH8LaH86pvT09VrwbpdJZfsdl90L6ZaV7cszv20K7sx2jXIRPFAKqmO-gdjWZhwDx7PtQzub3XmUzt-hkqCxEfVYMbVYr8faE3R8YGSpXW_',
-    delitos: ['CORRUPCIÓN', 'EXTORSIÓN', 'ABUSO DE AUTORIDAD'],
-    denunciasCount: 14,
-    activo: true,
-  },
-  {
-    cedula: '9876543',
-    cedulaPrefix: 'V',
-    nombres: 'José Antonio',
-    apellidos: 'Rodríguez Blanco',
-    cargo: 'Inspector General',
-    institucion: 'SENIAT',
-    estado: 'Distrito Capital',
-    municipio: 'Caracas',
-    delitos: ['CORRUPCIÓN', 'EXTORSIÓN'],
-    denunciasCount: 7,
-    activo: true,
-  },
-  {
-    cedula: '11234567',
-    cedulaPrefix: 'V',
-    nombres: 'Rafael Ignacio',
-    apellidos: 'Fuentes Montoya',
-    cargo: 'Director de Hacienda',
-    institucion: 'Alcaldía de Valencia',
-    estado: 'Carabobo',
-    municipio: 'Valencia',
-    delitos: ['CORRUPCIÓN'],
-    denunciasCount: 3,
-    activo: true,
-  },
-  {
-    cedula: '8901234',
-    cedulaPrefix: 'V',
-    nombres: 'María Luisa',
-    apellidos: 'Contreras Díaz',
-    cargo: 'Fiscal Superior',
-    institucion: 'Ministerio Público',
-    estado: 'Miranda',
-    municipio: 'Los Teques',
-    delitos: ['ABUSO DE AUTORIDAD', 'CORRUPCIÓN'],
-    denunciasCount: 5,
-    activo: true,
-  },
-  {
-    cedula: '12456789',
-    cedulaPrefix: 'V',
-    nombres: 'Pedro Luis',
-    apellidos: 'Hernández Vargas',
-    cargo: 'Comandante',
-    institucion: 'GNB — Guardia Nacional',
-    estado: 'Aragua',
-    municipio: 'Maracay',
-    delitos: ['EXTORSIÓN', 'ABUSO DE AUTORIDAD'],
-    denunciasCount: 9,
-    activo: true,
-  },
-  {
-    cedula: '7654321',
-    cedulaPrefix: 'V',
-    nombres: 'Luis Alberto',
-    apellidos: 'Castillo Ramos',
-    cargo: 'Juez de Primera Instancia',
-    institucion: 'Tribunal Supremo de Justicia',
-    estado: 'Bolívar',
-    municipio: 'Puerto Ordaz',
-    delitos: ['CORRUPCIÓN'],
-    denunciasCount: 2,
-    activo: false,
-  },
-]
+const MOCK_ACUSADOS: Acusado[] = []
 
 function AcusadoCard({ acusado }: { acusado: Acusado }) {
   return (
@@ -192,17 +111,34 @@ export default function CatalogoPage() {
             <div className="hidden md:block h-[1px] flex-grow bg-borderDefault" />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {acusados.map((acusado) => (
-              <AcusadoCard key={acusado.cedula} acusado={acusado} />
-            ))}
-          </div>
-
-          <div className="mt-10 flex justify-center">
-            <button className="border border-borderSubtle text-textSecondary hover:text-textPrimary hover:border-primary px-8 py-3 text-[10px] font-bold uppercase tracking-widest transition-all">
-              Cargar más registros
-            </button>
-          </div>
+          {acusados.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {acusados.map((acusado) => (
+                <AcusadoCard key={acusado.cedula} acusado={acusado} />
+              ))}
+            </div>
+          ) : (
+            <div className="border border-dashed border-borderSubtle py-20 px-6 flex flex-col items-center text-center">
+              <span className="material-symbols-outlined text-5xl text-borderSubtle mb-4">
+                folder_off
+              </span>
+              <p className="text-textPrimary font-bold tracking-tight">
+                {activeCategory
+                  ? `Sin registros en la categoría ${activeCategory}`
+                  : 'Aún no hay acusados registrados'}
+              </p>
+              <p className="text-textSecondary text-sm mt-2 max-w-md">
+                Las fichas aparecerán aquí una vez que las denuncias ciudadanas sean
+                verificadas y publicadas.
+              </p>
+              <Link
+                href="/denuncia"
+                className="mt-6 bg-primary text-white px-6 py-3 text-[11px] font-bold uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all"
+              >
+                Crear una denuncia
+              </Link>
+            </div>
+          )}
         </div>
       </main>
       <Footer />
