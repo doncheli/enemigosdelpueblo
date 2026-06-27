@@ -246,7 +246,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      crear_denuncia: {
+        Args: {
+          p_acusado: Json
+          p_descripcion: string
+          p_evidencias?: Json
+          p_ocurrido_en?: string
+          p_origen?: Database["public"]["Enums"]["origen_denuncia"]
+          p_tipo: Database["public"]["Enums"]["tipo_delito"]
+        }
+        Returns: string
+      }
+      obtener_seguimiento: {
+        Args: { p_codigo: string }
+        Returns: {
+          acusado_apellidos: string
+          acusado_cargo: string
+          acusado_estado: string
+          acusado_foto_url: string
+          acusado_institucion: string
+          acusado_nombres: string
+          ai_score: number
+          codigo: string
+          created_at: string
+          estado: Database["public"]["Enums"]["estado_revision"]
+          moderado_en: string
+          tipo: Database["public"]["Enums"]["tipo_delito"]
+          updated_at: string
+        }[]
+      }
     }
     Enums: {
       estado_revision: "PENDIENTE" | "EN_REVISION" | "PUBLICADA" | "RECHAZADA"

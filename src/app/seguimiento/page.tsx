@@ -9,8 +9,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import CrimeBadge from '@/components/ui/CrimeBadge'
 import { TrackingResult, TrackingStepStatus } from '@/types'
-
-const MOCK_RESULTS: Record<string, TrackingResult> = {}
+import { getSeguimiento } from '@/lib/data'
 
 const STATUS_LABELS: Record<string, { label: string; bg: string; text: string }> = {
   PENDIENTE: { label: 'PENDIENTE', bg: 'bg-elevated', text: 'text-textSecondary' },
@@ -48,9 +47,15 @@ function TrackingContent() {
   const [searched, setSearched] = useState(false)
   const [notFound, setNotFound] = useState(false)
 
-  const handleSearch = () => {
-    const found = MOCK_RESULTS[query.trim().toUpperCase()]
+  const [loading, setLoading] = useState(false)
+
+  const handleSearch = async () => {
+    const code = query.trim()
+    if (!code) return
+    setLoading(true)
     setSearched(true)
+    const found = await getSeguimiento(code)
+    setLoading(false)
     if (found) {
       setResult(found)
       setNotFound(false)
@@ -92,15 +97,16 @@ function TrackingContent() {
           </div>
           <button
             onClick={handleSearch}
-            className="bg-primary text-white px-8 py-4 font-bold rounded-lg hover:bg-red-700 active:scale-[0.98] transition-all"
+            disabled={loading}
+            className="bg-primary text-white px-8 py-4 font-bold rounded-lg hover:bg-red-700 active:scale-[0.98] transition-all disabled:opacity-50"
           >
-            Consultar
+            {loading ? 'Consultando…' : 'Consultar'}
           </button>
         </div>
       </section>
 
       {/* Not found */}
-      {searched && notFound && (
+      {searched && notFound && !loading && (
         <div className="bg-surface border border-borderDefault p-8 text-center">
           <span className="material-symbols-outlined text-4xl text-borderSubtle mb-4 block">
             search_off

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { TipoDelito } from '@/types'
+import { crearDenuncia } from '@/lib/data'
 import {
   sha256File,
   acusadoFingerprint,
@@ -51,14 +52,6 @@ interface FilePreview {
   hash: string
 }
 
-function generateTrackingId(): string {
-  const year = new Date().getFullYear()
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789'
-  const code = Array.from({ length: 4 }, () =>
-    chars[Math.floor(Math.random() * chars.length)]
-  ).join('')
-  return `ENP-${year}-${code}`
-}
 
 type StepStatus = 'active' | 'completed' | 'pending'
 
@@ -179,6 +172,7 @@ export default function DenunciaPage() {
   const [aceptaTerminos, setAceptaTerminos] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [trackingId, setTrackingId] = useState('')
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
     return () => {
@@ -322,10 +316,30 @@ export default function DenunciaPage() {
       return
     }
 
-    // 3) Mock de envío (~1.8s). En el futuro: POST al backend con `recordHash`
-    //    + `acusadoHash` + `fileHashes` para que dedupe del lado servidor.
-    await new Promise((r) => setTimeout(r, 1800))
-    const tracking = generateTrackingId()
+    // 3) Envío real: sube evidencias a Storage y crea la denuncia (PENDIENTE).
+    const res = await crearDenuncia({
+      acusado: {
+        cedulaPrefix,
+        cedula: cedula.replace(/\./g, '') || undefined,
+        nombres,
+        apellidos,
+        cargo,
+        institucion,
+        estado: estadoAcusado,
+        municipio,
+      },
+      tipo: tipoDelito as TipoDelito,
+      descripcion,
+      ocurridoEn: fechaIncidente || undefined,
+      files: files.map((f) => ({ file: f.file, hash: f.hash })),
+    })
+
+    if ('error' in res) {
+      setSubmitError(res.error)
+      setSubmitting(false)
+      return
+    }
+    const tracking = res.codigo
 
     // 4) Registrar localmente para que las próximas denuncias detecten el dup.
     const acusadoHash = await acusadoFingerprint({
@@ -1030,6 +1044,13 @@ export default function DenunciaPage() {
                         <strong className="font-mono">{duplicateRecord}</strong>. No se envió de nuevo.
                         Si querés agregar información, abrí el seguimiento de esa denuncia.
                       </p>
+                    </div>
+                  )}
+
+                  {submitError && (
+                    <div className="mx-6 mb-6 bg-[#1C0A0A] border border-[#7F1D1D] p-4 rounded">
+                      <h4 className="text-red-300 font-bold text-sm mb-1">No se pudo enviar</h4>
+                      <p className="text-red-200/80 text-xs">{submitError}</p>
                     </div>
                   )}
 

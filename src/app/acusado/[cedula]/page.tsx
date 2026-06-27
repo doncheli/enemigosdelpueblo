@@ -5,11 +5,10 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import CrimeBadge from '@/components/ui/CrimeBadge'
 import AiConfidenceBar from '@/components/ui/AiConfidenceBar'
-import { Acusado, DenunciaPublicada } from '@/types'
+import ReplicaForm from '@/components/ReplicaForm'
+import { getAcusadoPorCedula } from '@/lib/data'
 
-type AcusadoWithDenuncias = Acusado & { denuncias: DenunciaPublicada[] }
-
-const ACUSADOS_DB: Record<string, AcusadoWithDenuncias> = {}
+export const revalidate = 60
 
 const EVIDENCE_ICON: Record<string, string> = {
   VIDEO: 'video_library',
@@ -24,11 +23,12 @@ export default async function PerfilAcusado({
   params: Promise<{ cedula: string }>
 }) {
   const { cedula } = await params
-  const data = ACUSADOS_DB[cedula]
+  const data = await getAcusadoPorCedula(cedula)
 
   if (!data) notFound()
 
-  const { denuncias, ...acusado } = data
+  const acusadoId = (data as typeof data & { id: string }).id
+  const { denuncias, replicas, ...acusado } = data
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -213,11 +213,34 @@ export default async function PerfilAcusado({
             ))}
           </div>
 
-          <div className="mt-10 flex justify-center">
-            <button className="border border-borderSubtle text-textSecondary hover:text-textPrimary hover:border-primary px-8 py-3 text-[10px] font-bold uppercase tracking-widest transition-all">
-              Cargar denuncias anteriores
-            </button>
+        </section>
+
+        {/* Derecho de réplica */}
+        <section className="max-w-[1280px] mx-auto px-4 md:px-8 pb-20">
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-xl font-bold tracking-[0.2em] uppercase text-textPrimary">
+              Derecho de Réplica
+            </h2>
+            <div className="h-[1px] flex-grow bg-borderDefault" />
           </div>
+
+          {replicas.length > 0 && (
+            <div className="space-y-4 mb-8">
+              {replicas.map((r) => (
+                <blockquote
+                  key={r.id}
+                  className="bg-elevated border-l-2 border-[#4ADE80] p-6"
+                >
+                  <p className="text-textPrimary text-sm leading-relaxed">{r.contenido}</p>
+                  <footer className="mt-3 text-[10px] font-bold uppercase tracking-widest text-textSecondary">
+                    {r.autor ?? 'Respuesta del señalado'} · {r.fecha}
+                  </footer>
+                </blockquote>
+              ))}
+            </div>
+          )}
+
+          <ReplicaForm acusadoId={acusadoId} />
         </section>
       </main>
       <Footer />
