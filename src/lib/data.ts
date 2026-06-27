@@ -1,4 +1,5 @@
 import { supabase } from './supabase/client'
+import { sanitizarEvidencia } from './sanitize'
 import type {
   Acusado,
   DenunciaPublicada,
@@ -267,22 +268,27 @@ export async function crearDenuncia(input: {
   ocurridoEn?: string
   files: { file: File; hash: string }[]
 }): Promise<{ codigo: string } | { error: string }> {
-  // 1) Subir evidencias a Storage (bucket público "evidencias")
+  // 1) Anonimizar y subir evidencias. Las imágenes se re-codifican para
+  //    eliminar metadatos (EXIF/GPS) y nunca se guarda el nombre original
+  //    del archivo: cero datos del denunciante.
   const evidencias: { tipo: string; url: string; nombre: string }[] = []
-  for (const { file, hash } of input.files) {
-    const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin'
-    const path = `${hash.slice(0, 16)}-${Date.now()}.${ext}`
+  for (let i = 0; i < input.files.length; i++) {
+    const original = input.files[i].file
+    const { file, nombre } = await sanitizarEvidencia(original, i)
+    const fileExt = nombre.split('.').pop() || 'bin'
+    // Ruta aleatoria (no derivada del contenido ni del denunciante).
+    const rand = crypto.randomUUID()
+    const path = `${rand}.${fileExt}`
     const { error: upErr } = await supabase.storage.from('evidencias').upload(path, file, {
       cacheControl: '3600',
       upsert: false,
     })
     if (upErr) {
-      // No bloqueamos toda la denuncia por un archivo; lo omitimos.
-      console.warn('Fallo al subir evidencia', file.name, upErr.message)
+      console.warn('Fallo al subir evidencia', upErr.message)
       continue
     }
     const { data: pub } = supabase.storage.from('evidencias').getPublicUrl(path)
-    evidencias.push({ tipo: evidenciaTipo(file.type), url: pub.publicUrl, nombre: file.name })
+    evidencias.push({ tipo: evidenciaTipo(original.type), url: pub.publicUrl, nombre })
   }
 
   // 2) Crear denuncia (RPC atómica). Devuelve el código de seguimiento.

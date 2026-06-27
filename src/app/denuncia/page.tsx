@@ -788,9 +788,21 @@ export default function DenunciaPage() {
                     <h1 className="text-2xl md:text-3xl font-bold text-textPrimary mb-2 tracking-tight">
                       Evidencias Multimedia
                     </h1>
-                    <p className="text-textSecondary mb-8">
+                    <p className="text-textSecondary mb-4">
                       Sube al menos 1 foto o video que respalde tu denuncia. Máximo 5 archivos.
                     </p>
+
+                    <div className="flex items-start gap-3 bg-[#052E16]/40 border border-[#4ADE80]/30 p-4 rounded mb-8">
+                      <span className="material-symbols-outlined text-[#4ADE80] text-base mt-0.5">
+                        shield_lock
+                      </span>
+                      <p className="text-[#4ADE80]/90 text-xs leading-relaxed">
+                        <strong>Anonimato garantizado.</strong> No guardamos ningún dato tuyo. A las
+                        fotos se les eliminan los metadatos (ubicación GPS, dispositivo) antes de
+                        subirlas y se renombran. En videos y audios esa limpieza no es posible: evita
+                        subir archivos que puedan identificarte.
+                      </p>
+                    </div>
 
                     {/* Drop Zone */}
                     <div
