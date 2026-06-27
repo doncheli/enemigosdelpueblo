@@ -108,13 +108,15 @@ export type PuntoMapa = {
   tipo: TipoDelito
   codigo: string
   acusado: string
+  cargo: string | null
+  fotoUrl: string | null
   cedula: string | null
 }
 
 export async function getUbicacionesMapa(): Promise<PuntoMapa[]> {
   const { data } = await supabase
     .from('denuncias')
-    .select('id, codigo, tipo, lat, lng, acusados(nombres, apellidos, cedula)')
+    .select('id, codigo, tipo, lat, lng, acusados(nombres, apellidos, cedula, cargo, foto_url)')
     .not('lat', 'is', null)
     .not('lng', 'is', null)
 
@@ -128,6 +130,8 @@ export async function getUbicacionesMapa(): Promise<PuntoMapa[]> {
         tipo: d.tipo,
         codigo: d.codigo,
         acusado: a ? `${a.nombres} ${a.apellidos}` : 'Acusado',
+        cargo: a?.cargo ?? null,
+        fotoUrl: a?.foto_url ?? null,
         cedula: a?.cedula ?? null,
       }
     })
@@ -302,8 +306,14 @@ export async function crearDenuncia(input: {
   tipo: TipoDelito
   descripcion: string
   ocurridoEn?: string
+  lat?: number | null
+  lng?: number | null
   files: { file: File; hash: string }[]
 }): Promise<{ codigo: string } | { error: string }> {
+  // Redondeo a ~110 m: ubica el hecho sin exponer la posición exacta del
+  // denunciante (privacidad). null si no hay coordenadas.
+  const fuzz = (n?: number | null) =>
+    typeof n === 'number' && Number.isFinite(n) ? Math.round(n * 1000) / 1000 : null
   // 1) Anonimizar y subir evidencias. Las imágenes se re-codifican para
   //    eliminar metadatos (EXIF/GPS) y nunca se guarda el nombre original
   //    del archivo: cero datos del denunciante.
@@ -343,6 +353,8 @@ export async function crearDenuncia(input: {
     p_descripcion: input.descripcion,
     p_ocurrido_en: input.ocurridoEn || undefined,
     p_evidencias: evidencias,
+    p_lat: fuzz(input.lat) ?? undefined,
+    p_lng: fuzz(input.lng) ?? undefined,
   })
 
   if (error || !data) return { error: error?.message ?? 'No se pudo registrar la denuncia' }

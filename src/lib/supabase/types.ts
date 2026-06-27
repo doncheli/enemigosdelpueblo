@@ -275,6 +275,8 @@ export type Database = {
           p_acusado: Json
           p_descripcion: string
           p_evidencias?: Json
+          p_lat?: number
+          p_lng?: number
           p_ocurrido_en?: string
           p_origen?: Database["public"]["Enums"]["origen_denuncia"]
           p_tipo: Database["public"]["Enums"]["tipo_delito"]

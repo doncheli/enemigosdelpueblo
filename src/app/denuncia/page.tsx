@@ -116,6 +116,9 @@ export default function DenunciaPage() {
   const [descripcion, setDescripcion] = useState('')
   const [fechaIncidente, setFechaIncidente] = useState('')
   const [lugar, setLugar] = useState('')
+  // Coordenadas del HECHO (para el mapa). Se capturan al usar geolocalización
+  // o geocodificando la dirección escrita.
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
 
@@ -137,6 +140,7 @@ export default function DenunciaPage() {
         })
       })
       const { latitude, longitude } = position.coords
+      setCoords({ lat: latitude, lng: longitude })
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=es&zoom=18`,
@@ -316,7 +320,27 @@ export default function DenunciaPage() {
       return
     }
 
-    // 3) Envío real: sube evidencias a Storage y crea la denuncia (PENDIENTE).
+    // 3) Coordenadas del hecho: usa la geolocalización; si no, geocodifica la
+    //    dirección escrita (Nominatim) para que el hecho aparezca en el mapa.
+    let finalCoords = coords
+    if (!finalCoords && lugar.trim()) {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=es&q=${encodeURIComponent(
+            lugar.trim(),
+          )}`,
+          { headers: { Accept: 'application/json' } },
+        )
+        const arr = await res.json()
+        if (arr?.[0]) {
+          finalCoords = { lat: parseFloat(arr[0].lat), lng: parseFloat(arr[0].lon) }
+        }
+      } catch {
+        /* sin coords: la denuncia se registra igual, solo no aparece en el mapa */
+      }
+    }
+
+    // 4) Envío real: sube evidencias a Storage y crea la denuncia (PENDIENTE).
     const res = await crearDenuncia({
       acusado: {
         cedulaPrefix,
@@ -331,6 +355,8 @@ export default function DenunciaPage() {
       tipo: tipoDelito as TipoDelito,
       descripcion,
       ocurridoEn: fechaIncidente || undefined,
+      lat: finalCoords?.lat ?? null,
+      lng: finalCoords?.lng ?? null,
       files: files.map((f) => ({ file: f.file, hash: f.hash })),
     })
 
@@ -715,7 +741,11 @@ export default function DenunciaPage() {
                           <input
                             type="text"
                             value={lugar}
-                            onChange={(e) => setLugar(e.target.value)}
+                            onChange={(e) => {
+                              setLugar(e.target.value)
+                              // dirección editada a mano: descartar coords del GPS
+                              setCoords(null)
+                            }}
                             placeholder="Ej: Comando Policial, Av. Principal..."
                             className={inputClass}
                           />

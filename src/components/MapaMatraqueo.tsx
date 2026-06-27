@@ -42,22 +42,41 @@ export default function MapaMatraqueo({ puntos }: { puntos: PuntoMapa[] }) {
             pathOptions={{ color, fillColor: color, fillOpacity: 0.55, weight: 2 }}
           >
             <Popup>
-              <div className="min-w-[160px]">
-                <span
-                  className="inline-block text-[9px] font-bold tracking-widest uppercase mb-1"
-                  style={{ color }}
-                >
-                  {p.tipo}
-                </span>
-                <p className="font-bold text-sm leading-tight">{p.acusado}</p>
-                <p className="font-mono text-[10px] opacity-70 mb-2">{p.codigo}</p>
+              <div className="w-[210px]">
+                <div className="flex gap-3">
+                  <div className="w-14 h-[72px] shrink-0 bg-black overflow-hidden border border-[#1E293B]">
+                    {p.fotoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={p.fotoUrl}
+                        alt={p.acusado}
+                        className="w-full h-full object-cover grayscale contrast-125"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[#334155]">person</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <span
+                      className="inline-block text-[9px] font-bold tracking-widest uppercase mb-1"
+                      style={{ color }}
+                    >
+                      {p.tipo}
+                    </span>
+                    <p className="font-bold text-sm leading-tight">{p.acusado}</p>
+                    {p.cargo && <p className="text-[11px] opacity-70 leading-tight">{p.cargo}</p>}
+                    <p className="font-mono text-[10px] opacity-60 mt-1">{p.codigo}</p>
+                  </div>
+                </div>
                 {p.cedula && (
                   <Link
                     href={`/acusado/${p.cedula}`}
-                    className="text-[11px] font-bold uppercase tracking-wider"
-                    style={{ color: '#FCA5A5' }}
+                    className="mt-3 block text-center bg-primary text-white text-[11px] font-bold uppercase tracking-wider py-2 hover:bg-red-700 transition-colors"
+                    style={{ color: '#fff' }}
                   >
-                    Ver ficha →
+                    Ver detalle
                   </Link>
                 )}
               </div>
