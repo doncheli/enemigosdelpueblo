@@ -13,14 +13,14 @@ async function requireModerador() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/admin/login')
+  if (!user) redirect('/doncheli_admin/login')
   const { data: esModerador } = await supabase.rpc('es_moderador')
-  if (!esModerador) redirect('/admin/login')
+  if (!esModerador) redirect('/doncheli_admin/login')
   return { supabase, user }
 }
 
 function refrescar() {
-  revalidatePath('/admin')
+  revalidatePath('/doncheli_admin')
   revalidatePath('/')
 }
 
@@ -65,5 +65,5 @@ export async function rechazarReplica(replicaId: string) {
 export async function cerrarSesion() {
   const supabase = await createSupabaseServer()
   await supabase.auth.signOut()
-  redirect('/admin/login')
+  redirect('/doncheli_admin/login')
 }

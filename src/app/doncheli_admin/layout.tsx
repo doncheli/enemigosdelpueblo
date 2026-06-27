@@ -21,14 +21,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: esModerador } = await supabase.rpc('es_moderador')
   if (!esModerador) {
     await supabase.auth.signOut()
-    redirect('/admin/login')
+    redirect('/doncheli_admin/login')
   }
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-borderDefault">
         <div className="max-w-[1100px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-3">
+          <Link href="/doncheli_admin" className="flex items-center gap-3">
             <Image src="/logo.png" alt="Enemigos del Pueblo" width={150} height={38} className="h-8 w-auto" />
             <span className="text-textSecondary text-xs font-bold uppercase tracking-widest hidden sm:inline">
               Moderación

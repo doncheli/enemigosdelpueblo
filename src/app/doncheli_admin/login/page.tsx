@@ -24,7 +24,7 @@ function LoginForm() {
       setLoading(false)
       return
     }
-    router.replace(params.get('next') || '/admin')
+    router.replace(params.get('next') || '/doncheli_admin')
     router.refresh()
   }
 

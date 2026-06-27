@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * Protege /admin: refresca la sesión y exige usuario autenticado.
+ * Protege /doncheli_admin: refresca la sesión y exige usuario autenticado.
  * La autorización fina (ser moderador) se valida además en el layout y en RLS.
  */
 export async function middleware(request: NextRequest) {
@@ -32,18 +32,18 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const path = request.nextUrl.pathname
-  const isLogin = path === '/admin/login'
+  const isLogin = path === '/doncheli_admin/login'
 
-  if (path.startsWith('/admin') && !isLogin && !user) {
+  if (path.startsWith('/doncheli_admin') && !isLogin && !user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/admin/login'
+    url.pathname = '/doncheli_admin/login'
     url.searchParams.set('next', path)
     return NextResponse.redirect(url)
   }
 
   if (isLogin && user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/admin'
+    url.pathname = '/doncheli_admin'
     url.search = ''
     return NextResponse.redirect(url)
   }
@@ -52,5 +52,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/doncheli_admin/:path*'],
 }
