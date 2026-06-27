@@ -38,3 +38,38 @@ textarea::placeholder {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Leaflet — tema oscuro del sitio */
+.leaflet-container {
+  background: #080c14;
+  font-family: inherit;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid #1e293b;
+  border-radius: 2px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+}
+.leaflet-popup-close-button {
+  color: #94a3b8 !important;
+}
+.leaflet-bar a {
+  background: #0f172a;
+  color: #f8fafc;
+  border-bottom-color: #1e293b;
+}
+.leaflet-bar a:hover {
+  background: #1e293b;
+}
+.leaflet-control-attribution {
+  background: rgba(8, 12, 20, 0.75) !important;
+  color: #475569 !important;
+}
+.leaflet-control-attribution a {
+  color: #64748b !important;
+}

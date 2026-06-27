@@ -1,13 +1,29 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/Navbar'
 import CrimeBadge from '@/components/ui/CrimeBadge'
 import { Acusado, TipoDelito } from '@/types'
+import type { PuntoMapa } from '@/lib/data'
 
 const CATEGORIAS: TipoDelito[] = ['CORRUPCIÓN', 'EXTORSIÓN', 'ABUSO DE AUTORIDAD']
+
+// Leaflet necesita el DOM: carga solo en cliente.
+const MapaMatraqueo = dynamic(() => import('@/components/MapaMatraqueo'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[420px] w-full bg-surface border border-borderDefault animate-pulse" />
+  ),
+})
+
+const LEYENDA: { tipo: TipoDelito; color: string }[] = [
+  { tipo: 'EXTORSIÓN', color: '#FCA5A5' },
+  { tipo: 'CORRUPCIÓN', color: '#FCD34D' },
+  { tipo: 'ABUSO DE AUTORIDAD', color: '#93C5FD' },
+]
 
 function AcusadoCard({ acusado }: { acusado: Acusado }) {
   return (
@@ -67,7 +83,13 @@ function AcusadoCard({ acusado }: { acusado: Acusado }) {
   )
 }
 
-export default function CatalogoClient({ acusados: todos }: { acusados: Acusado[] }) {
+export default function CatalogoClient({
+  acusados: todos,
+  puntos,
+}: {
+  acusados: Acusado[]
+  puntos: PuntoMapa[]
+}) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
   const acusados = activeCategory
@@ -94,6 +116,36 @@ export default function CatalogoClient({ acusados: todos }: { acusados: Acusado[
               className="h-20 w-auto md:h-28"
             />
           </div>
+
+          {/* Mapa del Matraqueo y de la Extorsión */}
+          <section className="mb-12">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-textPrimary tracking-tight">
+                  Mapa del Matraqueo y de la Extorsión
+                </h2>
+                <p className="text-textSecondary text-sm mt-1">
+                  Ubicaciones reportadas de los hechos · Gran Caracas y La Guaira
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {LEYENDA.map((l) => (
+                  <span key={l.tipo} className="flex items-center gap-1.5">
+                    <span
+                      className="inline-block w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: l.color }}
+                    />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-textSecondary">
+                      {l.tipo}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="border border-borderDefault overflow-hidden">
+              <MapaMatraqueo puntos={puntos} />
+            </div>
+          </section>
 
           <div className="flex items-center gap-4 mb-8">
             <div>

@@ -103,6 +103,8 @@ export type Database = {
           estado: Database["public"]["Enums"]["estado_revision"]
           fuente_url: string | null
           id: string
+          lat: number | null
+          lng: number | null
           moderado_en: string | null
           moderado_por: string | null
           ocurrido_en: string | null
@@ -119,6 +121,8 @@ export type Database = {
           estado?: Database["public"]["Enums"]["estado_revision"]
           fuente_url?: string | null
           id?: string
+          lat?: number | null
+          lng?: number | null
           moderado_en?: string | null
           moderado_por?: string | null
           ocurrido_en?: string | null
@@ -135,6 +139,8 @@ export type Database = {
           estado?: Database["public"]["Enums"]["estado_revision"]
           fuente_url?: string | null
           id?: string
+          lat?: number | null
+          lng?: number | null
           moderado_en?: string | null
           moderado_por?: string | null
           ocurrido_en?: string | null

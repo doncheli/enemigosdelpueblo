@@ -98,6 +98,42 @@ export type AcusadoDetalle = Acusado & {
   replicas: Replica[]
 }
 
+// ---------------------------------------------------------------------------
+// Mapa: ubicaciones de hechos publicados con coordenadas
+// ---------------------------------------------------------------------------
+export type PuntoMapa = {
+  id: string
+  lat: number
+  lng: number
+  tipo: TipoDelito
+  codigo: string
+  acusado: string
+  cedula: string | null
+}
+
+export async function getUbicacionesMapa(): Promise<PuntoMapa[]> {
+  const { data } = await supabase
+    .from('denuncias')
+    .select('id, codigo, tipo, lat, lng, acusados(nombres, apellidos, cedula)')
+    .not('lat', 'is', null)
+    .not('lng', 'is', null)
+
+  return (data ?? [])
+    .map((d) => {
+      const a = Array.isArray(d.acusados) ? d.acusados[0] : d.acusados
+      return {
+        id: d.id,
+        lat: Number(d.lat),
+        lng: Number(d.lng),
+        tipo: d.tipo,
+        codigo: d.codigo,
+        acusado: a ? `${a.nombres} ${a.apellidos}` : 'Acusado',
+        cedula: a?.cedula ?? null,
+      }
+    })
+    .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
+}
+
 export async function getAcusadoPorCedula(cedula: string): Promise<AcusadoDetalle | null> {
   const { data: acusado } = await supabase
     .from('acusados')
