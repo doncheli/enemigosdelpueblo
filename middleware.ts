@@ -48,6 +48,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // El panel nunca debe indexarse (defensa extra al meta robots).
+  response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
   return response
 }
 

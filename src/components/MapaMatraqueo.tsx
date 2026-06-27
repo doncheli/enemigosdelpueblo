@@ -1,10 +1,12 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import Link from 'next/link'
 import type { LatLngExpression } from 'leaflet'
-import type { PuntoMapa } from '@/lib/data'
+import { getUbicacionesMapa, type PuntoMapa } from '@/lib/data'
+import { supabase } from '@/lib/supabase/client'
 import { TipoDelito } from '@/types'
 
 const COLOR: Record<TipoDelito, string> = {
@@ -17,7 +19,27 @@ const COLOR: Record<TipoDelito, string> = {
 // Corredor Caracas — La Guaira
 const CENTER: LatLngExpression = [10.55, -66.92]
 
-export default function MapaMatraqueo({ puntos }: { puntos: PuntoMapa[] }) {
+export default function MapaMatraqueo({ puntos: inicial }: { puntos: PuntoMapa[] }) {
+  const [puntos, setPuntos] = useState<PuntoMapa[]>(inicial)
+
+  // Tiempo real: cuando se publica una denuncia, el pin aparece en vivo.
+  useEffect(() => {
+    const canal = supabase
+      .channel('mapa-denuncias')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'denuncias' },
+        async () => {
+          const frescos = await getUbicacionesMapa()
+          setPuntos(frescos)
+        },
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(canal)
+    }
+  }, [])
+
   return (
     <MapContainer
       center={CENTER}

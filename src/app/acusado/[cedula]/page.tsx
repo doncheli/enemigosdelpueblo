@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -6,9 +7,47 @@ import Footer from '@/components/Footer'
 import CrimeBadge from '@/components/ui/CrimeBadge'
 import AiConfidenceBar from '@/components/ui/AiConfidenceBar'
 import ReplicaForm from '@/components/ReplicaForm'
+import CompartirPerfil from '@/components/CompartirPerfil'
 import { getAcusadoPorCedula } from '@/lib/data'
 
 export const revalidate = 60
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ cedula: string }>
+}): Promise<Metadata> {
+  const { cedula } = await params
+  const data = await getAcusadoPorCedula(cedula)
+  if (!data) return { title: 'Acusado no encontrado' }
+
+  const nombre = `${data.nombres} ${data.apellidos}`
+  const delitos = data.delitos.join(', ')
+  const titulo = `${nombre} — ${data.cargo || 'Funcionario'}`
+  const desc = `${nombre}${data.cargo ? `, ${data.cargo}` : ''}${
+    data.estado ? ` (${data.estado})` : ''
+  }. Señalado por ${delitos || 'denuncias ciudadanas'}. ${data.denunciasCount} denuncia(s) documentada(s).`
+  const url = `/acusado/${cedula}`
+
+  return {
+    title: titulo,
+    description: desc,
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'profile',
+      url,
+      title: `${titulo} · Enemigos del Pueblo`,
+      description: desc,
+      images: data.fotoUrl ? [{ url: data.fotoUrl, alt: nombre }] : ['/logo.png'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${titulo} · Enemigos del Pueblo`,
+      description: desc,
+      images: data.fotoUrl ? [data.fotoUrl] : ['/logo.png'],
+    },
+  }
+}
 
 const EVIDENCE_ICON: Record<string, string> = {
   VIDEO: 'video_library',
@@ -138,21 +177,27 @@ export default async function PerfilAcusado({
                 </div>
               </div>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <div className="mt-8">
                 <Link
                   href="/denuncia"
-                  className="bg-primary hover:bg-red-700 text-white font-bold py-4 px-8 tracking-widest uppercase text-sm active:scale-95 transition-all flex items-center justify-center gap-3"
+                  className="inline-flex bg-primary hover:bg-red-700 text-white font-bold py-4 px-8 tracking-widest uppercase text-sm active:scale-95 transition-all items-center justify-center gap-3"
                 >
                   <span className="material-symbols-outlined">add_alert</span>
                   Agregar denuncia contra este acusado
                 </Link>
-                <button className="border border-borderSubtle text-textSecondary hover:text-textPrimary hover:border-textPrimary font-bold py-4 px-8 tracking-widest uppercase text-sm transition-all flex items-center justify-center gap-3">
-                  <span className="material-symbols-outlined">share</span>
-                  Difundir perfil
-                </button>
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Compartir */}
+        <section className="max-w-[1280px] mx-auto px-4 md:px-8 mb-8">
+          <CompartirPerfil
+            nombre={`${acusado.nombres} ${acusado.apellidos}`}
+            cargo={acusado.cargo}
+            delitos={acusado.delitos}
+            cedula={acusado.cedula}
+          />
         </section>
 
         {/* Denuncias Timeline */}

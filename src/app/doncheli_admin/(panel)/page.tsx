@@ -1,11 +1,6 @@
 import CrimeBadge from '@/components/ui/CrimeBadge'
 import { createSupabaseServer } from '@/lib/supabase/server'
-import {
-  aprobarDenuncia,
-  rechazarDenuncia,
-  aprobarReplica,
-  rechazarReplica,
-} from '../actions'
+import { rechazarDenuncia, aprobarReplica, rechazarReplica } from '../actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,8 +21,9 @@ export default async function AdminDashboard() {
     .select(
       'id, codigo, tipo, descripcion, origen, created_at, acusado_id, acusados(nombres, apellidos, cedula, cargo, estado, estado_revision)',
     )
-    .eq('estado', 'PENDIENTE')
-    .order('created_at', { ascending: true })
+    .eq('estado', 'PUBLICADA')
+    .order('created_at', { ascending: false })
+    .limit(50)
 
   const { data: replicas } = await supabase
     .from('replicas')
@@ -41,17 +37,20 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-12">
       <div className="flex flex-wrap gap-4">
-        <Stat label="Denuncias pendientes" value={pendDen.length} />
+        <Stat label="Denuncias publicadas" value={pendDen.length} />
         <Stat label="Réplicas pendientes" value={pendRep.length} />
       </div>
 
-      {/* Denuncias */}
+      {/* Denuncias publicadas — moderación reactiva */}
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-widest text-textPrimary mb-4">
-          Denuncias por revisar
+        <h2 className="text-sm font-bold uppercase tracking-widest text-textPrimary mb-1">
+          Denuncias publicadas
         </h2>
+        <p className="text-textSecondary text-xs mb-4">
+          Se publican al instante. Usa <strong>Quitar</strong> para bajar contenido indebido.
+        </p>
         {pendDen.length === 0 ? (
-          <Empty>No hay denuncias pendientes.</Empty>
+          <Empty>No hay denuncias publicadas.</Empty>
         ) : (
           <div className="space-y-4">
             {pendDen.map((d) => {
@@ -73,11 +72,6 @@ export default async function AdminDashboard() {
                       {a?.nombres} {a?.apellidos}
                     </strong>{' '}
                     {a?.cedula && <span className="font-mono text-textSecondary">· {a.cedula}</span>}
-                    {a?.estado_revision !== 'PUBLICADA' && (
-                      <span className="ml-2 text-[10px] uppercase tracking-widest text-[#FCD34D]">
-                        acusado nuevo
-                      </span>
-                    )}
                   </p>
                   <p className="text-textSecondary text-xs mb-4">
                     {a?.cargo} {a?.estado ? `— ${a.estado}` : ''}
@@ -86,16 +80,18 @@ export default async function AdminDashboard() {
                     {d.descripcion}
                   </p>
                   <div className="flex gap-3">
-                    <form action={aprobarDenuncia.bind(null, d.id, d.acusado_id)}>
-                      <button className="bg-[#052E16] text-[#4ADE80] border border-[#4ADE80]/40 px-5 py-2 text-[11px] font-bold uppercase tracking-widest hover:bg-[#063d1d] transition-all">
-                        Publicar
-                      </button>
-                    </form>
-                    <form action={rechazarDenuncia.bind(null, d.id)}>
+                    <form action={rechazarDenuncia.bind(null, d.id, d.acusado_id)}>
                       <button className="bg-[#1C0A0A] text-[#FCA5A5] border border-[#7F1D1D] px-5 py-2 text-[11px] font-bold uppercase tracking-widest hover:bg-[#2a0f0f] transition-all">
-                        Rechazar
+                        Quitar
                       </button>
                     </form>
+                    <a
+                      href={a?.cedula ? `/acusado/${a.cedula}` : '#'}
+                      target="_blank"
+                      className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-textSecondary hover:text-textPrimary border border-borderSubtle transition-all"
+                    >
+                      Ver ficha
+                    </a>
                   </div>
                 </article>
               )

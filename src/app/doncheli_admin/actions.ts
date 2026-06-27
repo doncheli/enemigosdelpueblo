@@ -35,12 +35,24 @@ export async function aprobarDenuncia(denunciaId: string, acusadoId: string) {
   refrescar()
 }
 
-export async function rechazarDenuncia(denunciaId: string) {
+export async function rechazarDenuncia(denunciaId: string, acusadoId?: string) {
   const { supabase, user } = await requireModerador()
   await supabase
     .from('denuncias')
     .update({ estado: 'RECHAZADA', moderado_en: new Date().toISOString(), moderado_por: user.id })
     .eq('id', denunciaId)
+
+  // Si el acusado se queda sin denuncias publicadas, se oculta también.
+  if (acusadoId) {
+    const { count } = await supabase
+      .from('denuncias')
+      .select('id', { count: 'exact', head: true })
+      .eq('acusado_id', acusadoId)
+      .eq('estado', 'PUBLICADA')
+    if (!count) {
+      await supabase.from('acusados').update({ estado_revision: 'RECHAZADA' }).eq('id', acusadoId)
+    }
+  }
   refrescar()
 }
 
