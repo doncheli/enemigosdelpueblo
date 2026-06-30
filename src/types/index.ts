@@ -20,9 +20,10 @@ export interface Acusado {
 }
 
 export interface Evidencia {
-  tipo: 'IMAGEN' | 'VIDEO' | 'AUDIO' | 'DOCUMENTO'
+  tipo: 'IMAGEN' | 'VIDEO' | 'AUDIO' | 'DOCUMENTO' | 'ENLACE'
   thumbnailUrl?: string
   nombre?: string
+  url?: string
 }
 
 export interface DenunciaPublicada {

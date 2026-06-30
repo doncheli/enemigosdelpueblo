@@ -312,7 +312,7 @@ export type Database = {
         | "REGISTRO_OFICIAL"
         | "OTRO"
       tipo_delito: "CORRUPCIÓN" | "EXTORSIÓN" | "ABUSO DE AUTORIDAD" | "OTRO"
-      tipo_evidencia: "IMAGEN" | "VIDEO" | "AUDIO" | "DOCUMENTO"
+      tipo_evidencia: "IMAGEN" | "VIDEO" | "AUDIO" | "DOCUMENTO" | "ENLACE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -452,7 +452,7 @@ export const Constants = {
         "OTRO",
       ],
       tipo_delito: ["CORRUPCIÓN", "EXTORSIÓN", "ABUSO DE AUTORIDAD", "OTRO"],
-      tipo_evidencia: ["IMAGEN", "VIDEO", "AUDIO", "DOCUMENTO"],
+      tipo_evidencia: ["IMAGEN", "VIDEO", "AUDIO", "DOCUMENTO", "ENLACE"],
     },
   },
 } as const

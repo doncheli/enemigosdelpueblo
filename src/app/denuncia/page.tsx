@@ -171,6 +171,26 @@ export default function DenunciaPage() {
   const [files, setFiles] = useState<FilePreview[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // Enlaces de redes sociales como evidencia
+  const [enlaces, setEnlaces] = useState<string[]>([])
+  const [enlaceInput, setEnlaceInput] = useState('')
+  const [enlaceError, setEnlaceError] = useState<string | null>(null)
+
+  const agregarEnlace = () => {
+    const url = enlaceInput.trim()
+    if (!url) return
+    if (!/^https?:\/\/.+\..+/i.test(url)) {
+      setEnlaceError('Pega un enlace válido (https://…).')
+      return
+    }
+    if (enlaces.includes(url)) {
+      setEnlaceError('Ese enlace ya fue agregado.')
+      return
+    }
+    setEnlaces((prev) => [...prev, url])
+    setEnlaceInput('')
+    setEnlaceError(null)
+  }
 
   // Step 4 / success
   const [aceptaTerminos, setAceptaTerminos] = useState(false)
@@ -358,6 +378,7 @@ export default function DenunciaPage() {
       lat: finalCoords?.lat ?? null,
       lng: finalCoords?.lng ?? null,
       files: files.map((f) => ({ file: f.file, hash: f.hash })),
+      enlaces,
     })
 
     if ('error' in res) {
@@ -941,6 +962,68 @@ export default function DenunciaPage() {
                       </div>
                     )}
 
+                    {/* Enlaces de redes sociales */}
+                    <div className="mt-10">
+                      <h4 className="text-sm font-bold uppercase tracking-widest text-textSecondary mb-1">
+                        O pega un enlace de redes sociales
+                      </h4>
+                      <p className="text-xs text-textSecondary/70 mb-4">
+                        X, Instagram, TikTok, Facebook o YouTube. La publicación queda como
+                        evidencia enlazada.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="relative flex-grow">
+                          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary text-base">
+                            link
+                          </span>
+                          <input
+                            type="url"
+                            value={enlaceInput}
+                            onChange={(e) => {
+                              setEnlaceInput(e.target.value)
+                              setEnlaceError(null)
+                            }}
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), agregarEnlace())}
+                            placeholder="https://x.com/usuario/status/…"
+                            className="w-full bg-elevated border border-borderSubtle text-textPrimary pl-10 pr-4 py-3 rounded focus:ring-1 focus:ring-primary focus:outline-none transition-all text-sm"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={agregarEnlace}
+                          className="px-6 py-3 border border-primary text-primary font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-white transition-all whitespace-nowrap"
+                        >
+                          Agregar enlace
+                        </button>
+                      </div>
+                      {enlaceError && <p className="text-primary text-xs mt-2">{enlaceError}</p>}
+
+                      {enlaces.length > 0 && (
+                        <ul className="mt-4 space-y-2">
+                          {enlaces.map((url, i) => (
+                            <li
+                              key={i}
+                              className="flex items-center gap-3 bg-background border border-borderSubtle px-4 py-2.5 rounded"
+                            >
+                              <span className="material-symbols-outlined text-primary text-base">
+                                public
+                              </span>
+                              <span className="text-xs text-textPrimary font-mono truncate flex-grow">
+                                {url}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setEnlaces((prev) => prev.filter((_, j) => j !== i))}
+                                className="text-textSecondary hover:text-primary transition-colors"
+                              >
+                                <span className="material-symbols-outlined text-base">close</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
                     {/* Warnings */}
                     <div className="mt-8 space-y-4">
                       <div className="flex items-center gap-3 p-3 bg-background border-l-2 border-primary">
@@ -952,13 +1035,13 @@ export default function DenunciaPage() {
                           almacenar las evidencias.
                         </p>
                       </div>
-                      {files.length === 0 && (
+                      {files.length === 0 && enlaces.length === 0 && (
                         <div className="flex items-center gap-3 p-3 bg-[#2D1B00] border border-[#FCD34D]/30 rounded">
                           <span className="material-symbols-outlined text-[#FCD34D] flex-shrink-0">
                             warning
                           </span>
                           <p className="text-xs font-bold text-[#FCD34D]">
-                            Al menos 1 archivo requerido para continuar.
+                            Adjunta al menos 1 archivo o enlace para continuar.
                           </p>
                         </div>
                       )}
@@ -974,7 +1057,7 @@ export default function DenunciaPage() {
                     </button>
                     <button
                       onClick={() => setStep(4)}
-                      disabled={files.length === 0}
+                      disabled={files.length === 0 && enlaces.length === 0}
                       className="w-full md:w-auto px-12 py-3 bg-primary text-white font-bold uppercase tracking-widest text-sm hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Continuar{' '}

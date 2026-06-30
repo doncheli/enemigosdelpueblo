@@ -54,6 +54,7 @@ const EVIDENCE_ICON: Record<string, string> = {
   AUDIO: 'audio_file',
   DOCUMENTO: 'description',
   IMAGEN: 'image',
+  ENLACE: 'public',
 }
 
 export default async function PerfilAcusado({
@@ -230,26 +231,58 @@ export default async function PerfilAcusado({
                       {denuncia.descripcion}
                     </p>
                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6">
-                      {denuncia.evidencias.map((ev, i) => (
-                        <div
-                          key={i}
-                          className="aspect-square bg-background border border-borderSubtle overflow-hidden cursor-pointer hover:border-primary transition-colors flex items-center justify-center"
-                        >
-                          {ev.thumbnailUrl ? (
-                            <Image
-                              src={ev.thumbnailUrl}
-                              alt="Evidencia"
-                              width={80}
-                              height={80}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
+                      {denuncia.evidencias.map((ev, i) => {
+                        const base =
+                          'aspect-square bg-background border border-borderSubtle overflow-hidden hover:border-primary transition-colors flex items-center justify-center'
+                        if (ev.thumbnailUrl) {
+                          return (
+                            <a
+                              key={i}
+                              href={ev.thumbnailUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`${base} cursor-pointer`}
+                            >
+                              <Image
+                                src={ev.thumbnailUrl}
+                                alt="Evidencia"
+                                width={80}
+                                height={80}
+                                className="w-full h-full object-cover"
+                              />
+                            </a>
+                          )
+                        }
+                        // Enlace de redes u otro archivo: tile clicable
+                        if (ev.url) {
+                          return (
+                            <a
+                              key={i}
+                              href={ev.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title={ev.tipo === 'ENLACE' ? ev.url : undefined}
+                              className={`${base} cursor-pointer flex-col gap-1`}
+                            >
+                              <span className="material-symbols-outlined text-primary text-3xl">
+                                {EVIDENCE_ICON[ev.tipo] ?? 'attachment'}
+                              </span>
+                              {ev.tipo === 'ENLACE' && (
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-textSecondary px-1 truncate max-w-full">
+                                  {ev.nombre ?? 'enlace'}
+                                </span>
+                              )}
+                            </a>
+                          )
+                        }
+                        return (
+                          <div key={i} className={base}>
                             <span className="material-symbols-outlined text-borderSubtle text-4xl">
                               {EVIDENCE_ICON[ev.tipo] ?? 'attachment'}
                             </span>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        )
+                      })}
                     </div>
                     <AiConfidenceBar score={denuncia.aiScore} />
                   </div>

@@ -37,7 +37,9 @@ function mapAcusado(row: AcusadoRow, delitos: TipoDelito[] = []): Acusado {
 function mapEvidencia(row: EvidenciaRow): Evidencia {
   return {
     tipo: row.tipo,
-    thumbnailUrl: row.url ?? undefined,
+    // Solo las imágenes se muestran como miniatura; el resto se enlaza.
+    thumbnailUrl: row.tipo === 'IMAGEN' ? (row.url ?? undefined) : undefined,
+    url: row.url ?? undefined,
     nombre: row.nombre ?? undefined,
   }
 }
@@ -343,6 +345,7 @@ export async function crearDenuncia(input: {
   lat?: number | null
   lng?: number | null
   files: { file: File; hash: string }[]
+  enlaces?: string[]
 }): Promise<{ codigo: string } | { error: string }> {
   // Redondeo a ~110 m: ubica el hecho sin exponer la posición exacta del
   // denunciante (privacidad). null si no hay coordenadas.
@@ -369,6 +372,19 @@ export async function crearDenuncia(input: {
     }
     const { data: pub } = supabase.storage.from('evidencias').getPublicUrl(path)
     evidencias.push({ tipo: evidenciaTipo(original.type), url: pub.publicUrl, nombre })
+  }
+
+  // Enlaces de redes sociales como evidencia (sin descargar el contenido).
+  for (const enlace of input.enlaces ?? []) {
+    const limpio = enlace.trim()
+    if (!/^https?:\/\//i.test(limpio)) continue
+    let host = 'enlace'
+    try {
+      host = new URL(limpio).hostname.replace(/^www\./, '')
+    } catch {
+      /* host por defecto */
+    }
+    evidencias.push({ tipo: 'ENLACE', url: limpio, nombre: host })
   }
 
   // 2) Crear denuncia (RPC atómica). Devuelve el código de seguimiento.
