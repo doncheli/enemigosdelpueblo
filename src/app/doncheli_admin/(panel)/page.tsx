@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import CrimeBadge from '@/components/ui/CrimeBadge'
 import { createSupabaseServer } from '@/lib/supabase/server'
 import { rechazarDenuncia, aprobarReplica, rechazarReplica } from '../actions'
@@ -80,13 +81,19 @@ export default async function AdminDashboard() {
                     {d.descripcion}
                   </p>
                   <div className="flex gap-3">
+                    <Link
+                      href={`/doncheli_admin/editar/${d.id}`}
+                      className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-textPrimary border border-borderSubtle hover:border-primary transition-all"
+                    >
+                      Editar
+                    </Link>
                     <form action={rechazarDenuncia.bind(null, d.id, d.acusado_id)}>
                       <button className="bg-[#1C0A0A] text-[#FCA5A5] border border-[#7F1D1D] px-5 py-2 text-[11px] font-bold uppercase tracking-widest hover:bg-[#2a0f0f] transition-all">
                         Quitar
                       </button>
                     </form>
                     <a
-                      href={a?.cedula ? `/acusado/${a.cedula}` : '#'}
+                      href={a?.cedula ? `/acusado/${a.cedula}` : `/acusado/${d.acusado_id}`}
                       target="_blank"
                       className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-textSecondary hover:text-textPrimary border border-borderSubtle transition-all"
                     >

@@ -35,7 +35,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </span>
           </Link>
           <div className="flex items-center gap-4">
-            <span className="text-textSecondary text-xs hidden sm:inline">{user.email}</span>
+            <span className="text-textSecondary text-xs hidden sm:inline">Moderador</span>
             <form action={cerrarSesion}>
               <button className="text-textSecondary hover:text-primary text-xs font-bold uppercase tracking-widest">
                 Salir
