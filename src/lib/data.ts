@@ -78,9 +78,30 @@ export async function getAcusadosPublicados(): Promise<Acusado[]> {
     delitosPorAcusado.set(d.acusado_id, set)
   }
 
-  return acusados.map((a) =>
-    mapAcusado(a, Array.from(delitosPorAcusado.get(a.id) ?? [])),
-  )
+  // Foto de respaldo: primera imagen de evidencia (si el acusado no tiene foto)
+  const fotoPorAcusado = await getFotosFallback()
+
+  return acusados.map((a) => {
+    const base = mapAcusado(a, Array.from(delitosPorAcusado.get(a.id) ?? []))
+    return { ...base, fotoUrl: base.fotoUrl ?? fotoPorAcusado.get(a.id) }
+  })
+}
+
+// Mapa acusado_id -> primera URL de imagen de evidencia (denuncias publicadas).
+async function getFotosFallback(): Promise<Map<string, string>> {
+  const { data } = await supabase
+    .from('evidencias')
+    .select('url, denuncias(acusado_id)')
+    .eq('tipo', 'IMAGEN')
+    .not('url', 'is', null)
+
+  const map = new Map<string, string>()
+  for (const e of data ?? []) {
+    const den = Array.isArray(e.denuncias) ? e.denuncias[0] : e.denuncias
+    const aId = den?.acusado_id
+    if (aId && e.url && !map.has(aId)) map.set(aId, e.url)
+  }
+  return map
 }
 
 // ---------------------------------------------------------------------------
@@ -116,13 +137,17 @@ export type PuntoMapa = {
 export async function getUbicacionesMapa(): Promise<PuntoMapa[]> {
   const { data } = await supabase
     .from('denuncias')
-    .select('id, codigo, tipo, lat, lng, acusados(nombres, apellidos, cedula, cargo, foto_url)')
+    .select(
+      'id, codigo, tipo, lat, lng, acusado_id, acusados(nombres, apellidos, cedula, cargo, foto_url), evidencias(tipo, url)',
+    )
     .not('lat', 'is', null)
     .not('lng', 'is', null)
 
   return (data ?? [])
     .map((d) => {
       const a = Array.isArray(d.acusados) ? d.acusados[0] : d.acusados
+      const evs = (d.evidencias ?? []) as { tipo: string; url: string | null }[]
+      const imagen = evs.find((e) => e.tipo === 'IMAGEN' && e.url)?.url ?? null
       return {
         id: d.id,
         lat: Number(d.lat),
@@ -131,19 +156,23 @@ export async function getUbicacionesMapa(): Promise<PuntoMapa[]> {
         codigo: d.codigo,
         acusado: a ? `${a.nombres} ${a.apellidos}` : 'Acusado',
         cargo: a?.cargo ?? null,
-        fotoUrl: a?.foto_url ?? null,
-        cedula: a?.cedula ?? null,
+        fotoUrl: a?.foto_url ?? imagen,
+        // identificador para el enlace: cédula o, si no tiene, el UUID
+        cedula: a?.cedula ?? d.acusado_id,
       }
     })
     .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function getAcusadoPorCedula(cedula: string): Promise<AcusadoDetalle | null> {
-  const { data: acusado } = await supabase
-    .from('acusados')
-    .select('*')
-    .eq('cedula', cedula)
-    .maybeSingle()
+  // El identificador puede ser una cédula o, si el acusado no tiene cédula,
+  // su UUID (id). Se resuelve por la columna correcta.
+  const sel = supabase.from('acusados').select('*')
+  const { data: acusado } = UUID_RE.test(cedula)
+    ? await sel.eq('id', cedula).maybeSingle()
+    : await sel.eq('cedula', cedula).maybeSingle()
 
   if (!acusado) return null
 
@@ -173,9 +202,14 @@ export async function getAcusadoPorCedula(cedula: string): Promise<AcusadoDetall
 
   const delitos = Array.from(new Set((denuncias ?? []).map((d) => d.tipo))) as TipoDelito[]
 
+  // Foto de respaldo: primera imagen de evidencia si el acusado no tiene foto.
+  const imagenEvidencia =
+    (evidencias ?? []).find((e) => e.tipo === 'IMAGEN' && e.url)?.url ?? undefined
+
   return {
     ...mapAcusado(acusado, delitos),
     id: acusado.id,
+    fotoUrl: acusado.foto_url ?? imagenEvidencia,
     denuncias: (denuncias ?? []).map((d) => mapDenuncia(d, evPorDenuncia.get(d.id) ?? [])),
     replicas: (replicas ?? []).map((r) => ({
       id: r.id,
