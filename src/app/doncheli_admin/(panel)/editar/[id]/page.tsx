@@ -18,7 +18,7 @@ export default async function EditarDenuncia({ params }: { params: Promise<{ id:
   const { data: d } = await supabase
     .from('denuncias')
     .select(
-      'id, codigo, tipo, descripcion, origen, ocurrido_en, lat, lng, acusado_id, acusados(id, nombres, apellidos, cedula, cedula_prefix, cargo, institucion, estado, municipio)',
+      'id, codigo, tipo, descripcion, origen, ocurrido_en, lat, lng, acusado_id, acusados(id, nombres, apellidos, cedula, cedula_prefix, cargo, institucion, estado, municipio, foto_url)',
     )
     .eq('id', id)
     .maybeSingle()
@@ -42,9 +42,55 @@ export default async function EditarDenuncia({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      <form action={actualizarDenuncia} className="space-y-6">
+      <form action={actualizarDenuncia} encType="multipart/form-data" className="space-y-6">
         <input type="hidden" name="denunciaId" value={d.id} />
         <input type="hidden" name="acusadoId" value={d.acusado_id} />
+
+        {/* Imagen principal */}
+        <fieldset className="bg-surface border border-borderDefault p-5 space-y-4">
+          <legend className="px-2 text-[10px] font-bold uppercase tracking-widest text-textSecondary">
+            Imagen principal
+          </legend>
+          <div className="flex items-start gap-5">
+            <div className="w-24 h-32 shrink-0 bg-black border border-borderSubtle overflow-hidden flex items-center justify-center">
+              {a?.foto_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={a.foto_url}
+                  alt="Foto actual"
+                  className="w-full h-full object-cover grayscale contrast-125"
+                />
+              ) : (
+                <span className="material-symbols-outlined text-borderSubtle text-4xl">person</span>
+              )}
+            </div>
+            <div className="flex-grow space-y-3">
+              <div>
+                <label className={labelClass}>Subir imagen</label>
+                <input
+                  type="file"
+                  name="foto"
+                  accept="image/*"
+                  className="block w-full text-xs text-textSecondary file:mr-3 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-primary file:text-white hover:file:bg-red-700 file:cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>O pegar URL de imagen</label>
+                <input
+                  name="foto_url"
+                  placeholder="https://…"
+                  className={inputClass}
+                />
+              </div>
+              {a?.foto_url && (
+                <label className="flex items-center gap-2 text-xs text-textSecondary cursor-pointer">
+                  <input type="checkbox" name="eliminar_foto" className="accent-primary" />
+                  Eliminar imagen actual
+                </label>
+              )}
+            </div>
+          </div>
+        </fieldset>
 
         {/* Acusado */}
         <fieldset className="bg-surface border border-borderDefault p-5 space-y-4">

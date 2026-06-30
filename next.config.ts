@@ -1,6 +1,12 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // Permite subir imágenes de retrato desde el panel de edición.
+      bodySizeLimit: '10mb',
+    },
+  },
   images: {
     remotePatterns: [
       {

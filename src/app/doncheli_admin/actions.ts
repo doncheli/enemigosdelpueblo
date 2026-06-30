@@ -75,6 +75,27 @@ export async function actualizarDenuncia(formData: FormData) {
     return Number.isFinite(n) ? n : null
   }
 
+  // Imagen principal: subir archivo, pegar URL o eliminar. undefined = sin cambio.
+  let nuevaFoto: string | null | undefined = undefined
+  if (formData.get('eliminar_foto') === 'on') {
+    nuevaFoto = null
+  } else {
+    const foto = formData.get('foto')
+    if (foto instanceof File && foto.size > 0 && foto.type.startsWith('image/')) {
+      const ext = (foto.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
+      const path = `acusado-${acusadoId}-${Date.now()}.${ext || 'jpg'}`
+      const { error: upErr } = await supabase.storage
+        .from('retratos')
+        .upload(path, foto, { contentType: foto.type, upsert: false })
+      if (!upErr) {
+        nuevaFoto = supabase.storage.from('retratos').getPublicUrl(path).data.publicUrl
+      }
+    } else {
+      const urlTxt = txt('foto_url')
+      if (urlTxt && /^https?:\/\//i.test(urlTxt)) nuevaFoto = urlTxt
+    }
+  }
+
   await supabase
     .from('acusados')
     .update({
@@ -86,6 +107,7 @@ export async function actualizarDenuncia(formData: FormData) {
       institucion: txt('institucion'),
       estado: txt('estado'),
       municipio: txt('municipio'),
+      ...(nuevaFoto !== undefined ? { foto_url: nuevaFoto } : {}),
     })
     .eq('id', acusadoId)
 
