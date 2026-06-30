@@ -273,6 +273,7 @@ export type Database = {
       crear_denuncia: {
         Args: {
           p_acusado: Json
+          p_ai_score?: number
           p_descripcion: string
           p_evidencias?: Json
           p_lat?: number

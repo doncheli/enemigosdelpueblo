@@ -346,6 +346,7 @@ export async function crearDenuncia(input: {
   lng?: number | null
   files: { file: File; hash: string }[]
   enlaces?: string[]
+  aiScore?: number | null
 }): Promise<{ codigo: string } | { error: string }> {
   // Redondeo a ~110 m: ubica el hecho sin exponer la posición exacta del
   // denunciante (privacidad). null si no hay coordenadas.
@@ -405,6 +406,10 @@ export async function crearDenuncia(input: {
     p_evidencias: evidencias,
     p_lat: fuzz(input.lat) ?? undefined,
     p_lng: fuzz(input.lng) ?? undefined,
+    p_ai_score:
+      typeof input.aiScore === 'number' && Number.isFinite(input.aiScore)
+        ? Math.round(input.aiScore * 100) / 100
+        : undefined,
   })
 
   if (error || !data) return { error: error?.message ?? 'No se pudo registrar la denuncia' }

@@ -197,6 +197,7 @@ export default function DenunciaPage() {
   const [submitting, setSubmitting] = useState(false)
   const [trackingId, setTrackingId] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitStatus, setSubmitStatus] = useState<string | null>(null)
 
   useEffect(() => {
     return () => {
@@ -360,6 +361,36 @@ export default function DenunciaPage() {
       }
     }
 
+    // 3.5) Validación IA: si hay un video de YouTube, verificar que el contenido
+    //      coincida con la descripción. Bloquea si claramente no coincide.
+    let aiScore: number | null = null
+    const ytLink = enlaces.find((u) => /(?:youtube\.com|youtu\.be)/i.test(u))
+    if (ytLink) {
+      setSubmitStatus('Validando el video con IA…')
+      try {
+        const vres = await fetch('/api/validar-enlace', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: ytLink, descripcion }),
+        })
+        const v = await vres.json()
+        if (v?.soportado) {
+          aiScore = typeof v.confianza === 'number' ? v.confianza : null
+          if (v.coincide === false) {
+            setSubmitError(
+              `La IA detectó que el video no coincide con la descripción: ${v.razon || 'sin coincidencia'}. Corrige la descripción o el enlace.`,
+            )
+            setSubmitStatus(null)
+            setSubmitting(false)
+            return
+          }
+        }
+      } catch {
+        /* si la validación falla, no bloqueamos el envío */
+      }
+      setSubmitStatus(null)
+    }
+
     // 4) Envío real: sube evidencias a Storage y crea la denuncia (PENDIENTE).
     const res = await crearDenuncia({
       acusado: {
@@ -379,6 +410,7 @@ export default function DenunciaPage() {
       lng: finalCoords?.lng ?? null,
       files: files.map((f) => ({ file: f.file, hash: f.hash })),
       enlaces,
+      aiScore,
     })
 
     if ('error' in res) {
@@ -1176,6 +1208,15 @@ export default function DenunciaPage() {
                     <div className="mx-6 mb-6 bg-[#1C0A0A] border border-[#7F1D1D] p-4 rounded">
                       <h4 className="text-red-300 font-bold text-sm mb-1">No se pudo enviar</h4>
                       <p className="text-red-200/80 text-xs">{submitError}</p>
+                    </div>
+                  )}
+
+                  {submitStatus && (
+                    <div className="mx-6 mb-6 bg-[#0C1A2E] border border-[#93C5FD]/30 p-4 rounded flex items-center gap-3">
+                      <span className="material-symbols-outlined text-[#93C5FD] loading-spinner">
+                        autorenew
+                      </span>
+                      <p className="text-[#93C5FD] text-xs font-bold">{submitStatus}</p>
                     </div>
                   )}
 

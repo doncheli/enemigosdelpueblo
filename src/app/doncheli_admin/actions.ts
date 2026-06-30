@@ -1,5 +1,6 @@
 'use server'
 
+import sharp from 'sharp'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createSupabaseServer } from '@/lib/supabase/server'
@@ -82,11 +83,13 @@ export async function actualizarDenuncia(formData: FormData) {
   } else {
     const foto = formData.get('foto')
     if (foto instanceof File && foto.size > 0 && foto.type.startsWith('image/')) {
-      const ext = (foto.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
-      const path = `acusado-${acusadoId}-${Date.now()}.${ext || 'jpg'}`
+      // Re-codifica con sharp: elimina TODO metadato (EXIF/GPS) y normaliza a JPEG.
+      const entrada = Buffer.from(await foto.arrayBuffer())
+      const limpio = await sharp(entrada).rotate().jpeg({ quality: 90 }).toBuffer()
+      const path = `acusado-${acusadoId}-${Date.now()}.jpg`
       const { error: upErr } = await supabase.storage
         .from('retratos')
-        .upload(path, foto, { contentType: foto.type, upsert: false })
+        .upload(path, limpio, { contentType: 'image/jpeg', upsert: false })
       if (!upErr) {
         nuevaFoto = supabase.storage.from('retratos').getPublicUrl(path).data.publicUrl
       }
